@@ -2,11 +2,11 @@
   "hooks": {
     "Stop": [
       {
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.memory/hooks/capture-turn.sh\"",
-            "timeout": 60000
+            "command": ".memory/hooks/capture-turn.sh"
           }
         ]
       }
@@ -17,8 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.memory/hooks/pre-compact.sh\"",
-            "timeout": 60000
+            "command": ".memory/hooks/pre-compact.sh"
           }
         ]
       }

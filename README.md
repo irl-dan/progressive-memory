@@ -51,13 +51,21 @@ Or add to `.claude/settings.json`:
 
 ## Quick Start
 
-Initialize memory:
+The skill auto-initializes when first used. Claude will run:
 
 ```bash
-mkdir -p .memory/{sessions,project,user/$USER}
+bash scripts/init.sh
 ```
 
-Create an index (`.memory/index.md`):
+This creates the `.memory/` structure and checks hook configuration.
+
+**One-time setup**: If hooks aren't configured, the script outputs a JSON
+snippet to add to `.claude/settings.local.json`. This enables automatic
+turn capture.
+
+### Manual Initialization
+
+If you want to initialize manually, create an index (`.memory/index.md`):
 
 ```markdown
 My Project: Brief description.
@@ -111,7 +119,9 @@ Automatic capture via Claude Code hooks:
 - **Stop**: Captures after each assistant turn
 - **PreCompact**: Captures before context compaction
 
-Copy `hooks/hooks.json` to `.claude/hooks/` to enable.
+Hooks are automatically copied to `.memory/hooks/` during initialization.
+To enable them, add the hook configuration to `.claude/settings.local.json`
+(the init script provides the exact JSON snippet).
 
 ## Commands
 

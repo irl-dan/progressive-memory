@@ -29,21 +29,29 @@ sed -n '1,/^---$/p' .memory/**/*.md      # All summaries
 cat .memory/project/architecture.md       # Full detail
 ```
 
+## Initialization
+
+Before any memory operation, run initialization:
+
+```bash
+bash scripts/init.sh
+```
+
+This script is idempotent (safe to run multiple times). It:
+1. Creates the `.memory/` directory structure
+2. Sets up index.md and scratch.md
+3. Copies hooks to `.memory/hooks/`
+4. Checks if hooks are configured
+
+If hooks aren't configured, the script outputs a JSON snippet for the user
+to add to `.claude/settings.local.json`. Relay this to the user if needed.
+
 ## Quick Start
 
-Check if memory exists:
-```bash
-ls .memory/
-```
+After initialization, load context before starting work:
 
-Initialize if needed:
 ```bash
-mkdir -p .memory/{sessions,project,user/$USER}
-```
-
-Load context before starting work:
-```bash
-# Quick overview
+# Quick overview - all one-liners
 head -1 .memory/**/*.md
 
 # Current task
