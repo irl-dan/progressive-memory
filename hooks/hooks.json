@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.memory/hooks/capture-turn.sh\"",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.memory/hooks/pre-compact.sh\"",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

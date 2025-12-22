@@ -1,0 +1,18 @@
+{
+  "name": "progressive-memory",
+  "description": "Filesystem-based memory system using progressive disclosure for context management. Load one-liners, expand to summaries, dive into full detail—all with standard bash commands.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Dan B",
+    "url": "https://github.com/irl-dan",
+    "twitter": "https://x.com/irl_danB"
+  },
+  "repository": "https://github.com/irl-dan/progressive-memory",
+  "keywords": [
+    "memory",
+    "context",
+    "progressive-disclosure",
+    "sessions",
+    "summarization"
+  ]
+}

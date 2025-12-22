@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Progressive Memory: Filesystem-based Context Management for AI Agents"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "B"
+    given-names: "Dan"
+    alias: "irl-dan"
+url: "https://github.com/irl-dan/progressive-memory"
+repository-code: "https://github.com/irl-dan/progressive-memory"
+license: MIT
+keywords:
+  - memory
+  - context-management
+  - progressive-disclosure
+  - ai-agents
+  - claude-code
+abstract: >-
+  Progressive Memory is a filesystem-based memory system for AI agents
+  that uses progressive disclosure for context management. Every memory
+  file exists on a gradient from one-line summary to full detail,
+  loadable with standard bash commands (head, sed, cat).

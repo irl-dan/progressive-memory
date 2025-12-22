@@ -1,0 +1,19 @@
+{
+  "name": "progressive-memory-marketplace",
+  "owner": {
+    "name": "Dan B",
+    "url": "https://github.com/irl-dan"
+  },
+  "version": "1.0.0",
+  "description": "Progressive Memory: filesystem-based context management for AI agents",
+  "plugins": [
+    {
+      "name": "progressive-memory",
+      "source": "./",
+      "description": "Memory system using progressive disclosure—load one-liners, expand to summaries, dive into full detail",
+      "version": "1.0.0",
+      "keywords": ["memory", "context", "progressive-disclosure", "summarization"],
+      "skillsPath": "./skills/progressive-memory"
+    }
+  ]
+}
