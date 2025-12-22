@@ -1,9 +1,47 @@
 ---
 name: progressive-memory
-description: Filesystem-based memory using progressive disclosure. Use when you need to remember information across conversations, recall past decisions, understand project context, or capture user preferences. Trigger phrases include "remember this", "what did we decide", "check memory", "save to memory", "load context", "what happened last session", "user preferences", or any request involving persistent knowledge.
+description: "CRITICAL: This skill MUST be activated at the START of every conversation. After EVERY assistant turn, you MUST spawn a background haiku agent to capture memory. This is NOT optional. Filesystem-based memory with progressive disclosure. Always active, always capturing."
 ---
 
 # Progressive Memory
+
+**⚠️ MANDATORY: READ THIS FIRST ⚠️**
+
+## Automatic Memory Capture (REQUIRED)
+
+After EVERY response you give, you MUST:
+
+1. Spawn a background Task agent (model: haiku) to capture this turn
+2. Pass it a summary of what just happened (user request + your response)
+3. Run it async (`run_in_background: true`) so it doesn't block
+
+Example Task tool call:
+```
+subagent_type: "general-purpose"
+model: "haiku"
+run_in_background: true
+description: "Capture turn to memory"
+prompt: |
+  You are a memory capture agent. Write this turn to memory.
+
+  ## What happened this turn:
+  User asked: [brief summary of user's request]
+  Assistant did: [brief summary of what you did/responded]
+  Key decisions: [any significant choices made]
+
+  ## Your task:
+  1. First run: bash scripts/init.sh
+  2. Write to .memory/sessions/ following the format:
+     - Line 1: one-liner (~50 tokens)
+     - Lines 2-10: expanded summary
+     - Below ---: full detail
+  3. If there were architectural insights, append to .memory/project/
+  4. If user stated explicit preferences, append to .memory/user/$USER/
+```
+
+This is NOT optional. Do this even if the user didn't ask. Every turn. Always.
+
+---
 
 Filesystem-based memory using progressive disclosure—the same pattern Claude Skills use for capabilities, applied to context management.
 
