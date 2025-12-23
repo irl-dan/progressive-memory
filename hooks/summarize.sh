@@ -30,23 +30,23 @@ TURN_NUM=$(ls "$SESSION_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
 TURN_NUM=$((TURN_NUM + 1))
 TURN_FILE="$SESSION_DIR/$(printf '%03d' $TURN_NUM).md"
 
-# Extract conversation content including thinking and tool use
-# Skip: file-history-snapshot, tool_result content (too large)
+# Extract conversation content with clear turn delineation
+# Group: USER messages separate, ASSISTANT = thinking + tools + response together
 CLEAN_CONTENT=$(cat "$TRANSCRIPT_PATH" | jq -r '
   if .type == "user" and (.message.content | type) == "string" then
-    "USER: " + .message.content
+    "\n>>> USER\n" + .message.content
   elif .type == "assistant" and (.message.content | type) == "array" then
     [.message.content[] |
       if .type == "text" then
-        "ASSISTANT: " + .text
+        "[response] " + .text
       elif .type == "thinking" then
-        "THINKING: " + (.thinking | .[0:500])
+        "[thinking] " + .thinking
       elif .type == "tool_use" then
-        "TOOL: " + .name + " - " + (.input | tostring | .[0:100])
+        "[tool] " + .name + ": " + (.input | tostring | .[0:500])
       else
         empty
       end
-    ] | join("\n")
+    ] | join("\n") | if . != "" then "\n>>> ASSISTANT\n" + . else empty end
   else
     empty
   end
@@ -57,32 +57,59 @@ if [ -z "$CLEAN_CONTENT" ]; then
     exit 0
 fi
 
-# Get the last N entries for context (last ~10 exchanges)
-CONTEXT_LINES=20
+# Get recent content - last few complete exchanges
+# Using line count as rough proxy; >>> markers help identify turn boundaries
+CONTEXT_LINES=50
 RECENT_CONTENT=$(echo "$CLEAN_CONTENT" | tail -$CONTEXT_LINES)
 
-# Step 1: Summarize into a paragraph
-PARAGRAPH=$(echo "$RECENT_CONTENT" | claude --model haiku -p "Summarize this conversation excerpt into a single paragraph (3-5 sentences). Focus on what was discussed, decisions made, and outcomes. Be concise.
+# Get existing session summaries for context
+EXISTING_SUMMARIES=""
+if [ -d "$SESSION_DIR" ]; then
+    EXISTING_SUMMARIES=$(head -1 "$SESSION_DIR"/*.md 2>/dev/null | grep -v "^==>" | tail -5)
+fi
 
-Conversation:
-" 2>/dev/null || echo "Summary generation failed")
+# Step 1: Summarize into a paragraph
+PARAGRAPH=$(claude --model haiku -p "You are a memory system recording turn $TURN_NUM of an ongoing agent session.
+
+CRITICAL RULES:
+- Output ONLY the summary, nothing else
+- Write in DIRECT ACTIVE VOICE: 'Updated X', 'Fixed Y', 'Decided Z'
+- WRONG: 'A discussion was conducted about...' or 'The user and assistant explored...'
+- RIGHT: 'Updated summarize.sh to add context parameters. Fixed the prompt to avoid conversational output.'
+- Be specific: actual file names, function names, technical decisions
+- This is a LOG ENTRY, not commentary about a conversation
+
+Previous turns (for context):
+$EXISTING_SUMMARIES
+
+Current turn to synthesize:
+$RECENT_CONTENT
+
+Write 3-5 sentences directly stating what happened, what changed, what was decided. Active voice only." 2>/dev/null || echo "Summary generation failed")
 
 if [ "$PARAGRAPH" = "Summary generation failed" ]; then
     echo "Failed to generate paragraph summary" >&2
     exit 1
 fi
 
-# Step 2: Summarize paragraph into one-liner
-ONE_LINER=$(echo "$PARAGRAPH" | claude --model haiku -p "Summarize this paragraph into a single sentence (under 100 characters). Capture the main point.
+# Step 2: Summarize paragraph into one-liner (can be 1-3 sentences, must be single line)
+ONE_LINER=$(claude --model haiku -p "Condense this into 1-3 short sentences on a SINGLE LINE (no line breaks).
+
+RULES:
+- Output ONLY the condensed text, nothing else
+- Keep specific details: file names, function names, technical terms
+- Active voice: 'Updated X', 'Fixed Y', 'Added Z'
+- NO line breaks - everything on one line
+- Aim for ~150 characters but can be up to 250 if needed for specificity
 
 Paragraph:
-" 2>/dev/null || echo "Turn $TURN_NUM summary")
+$PARAGRAPH" 2>/dev/null || echo "Turn $TURN_NUM summary")
 
 # Step 3: Get recent content for "full detail" section
-# Last few meaningful exchanges (truncated for readability)
-FULL_DETAIL=$(echo "$RECENT_CONTENT" | tail -10)
+# Escape backticks to prevent breaking markdown
+FULL_DETAIL=$(echo "$RECENT_CONTENT" | sed 's/```/~~~~/g')
 
-# Write in progressive-memory format
+# Write in progressive-memory format (use ~~~~ as code fence to avoid conflicts)
 cat > "$TURN_FILE" << EOF
 $ONE_LINER
 
@@ -90,11 +117,7 @@ $PARAGRAPH
 
 ---
 
-## Turn $TURN_NUM - Full Detail
-
-\`\`\`
 $FULL_DETAIL
-\`\`\`
 
 ## Provenance
 
